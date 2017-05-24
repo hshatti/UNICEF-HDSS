@@ -1,0 +1,37 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+            /*Donut start*/
+            #don {transition: 2s}
+            svg .arc {stroke:#0cf}
+            svg .circle {}
+            svg g {fill:none;stroke:#034;stroke-width:30} 
+            svg text {fill:#888;font: bold 42px "Candara";text-anchor:middle;alignment-baseline: middle}
+            svg tspan {fill:#888;font: 20px "Candara";text-anchor:middle;alignment-baseline: hanging}
+            /*donut end*/
+            /*bar start*/
+            .pointer {z-index: 2 ;width:0;top:-4px;position:relative!important;margin:0 -4px;border-style: solid;border-width:4px 4px 0 4px;
+                       border-color: black transparent transparent transparent
+            }
+              /*.pointer::before {content:''}*/
+            .bar { margin:10px 0;height:20px;background: #444;border:solid silver 0px ;width:100%;display:inline-block;vertical-align:middle}
+            .bar div {height:inherit;position: absolute;transition:1s;-webkit-transition: 1s}
+            .bar .stack {position:relative;width: 100%}
+            .bar .pos {z-index: 1}
+            .bar .pos:nth-child(3) {background:dodgerblue}
+            .bar .pos:nth-child(4) {background:limegreen}
+            .bar .pos:nth-child(5) {background:tomato}
+            .bar span{position:relative;color:white}
+            /*.bar {background: none;left:0;top:0;margin:4px }*/
+            .bar .l {float:left;padding: 0 2px;z-index: 2}
+            .bar .r {float:right;padding:0 2px ;z-index: 2}
+            .num {font-family :"Candara";font-size: 16px}
+            /*bar end*/
+
+/* 
+    Created on : Apr 22, 2017, 9:42:02 PM
+    Author     : hshatti
+*/
+
