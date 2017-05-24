@@ -1,0 +1,116 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+
+@font-face {
+	font-family: 'OCHA-Unbounded';
+	src: url('OCHA-Unbounded.eot');
+	src: local('☺'), url('OCHA-Unbounded.woff') format('woff'), url('OCHA-Unbounded.ttf') format('truetype'), url('OCHA-Unbounded.svg') format('svg');
+	font-weight: normal;
+	font-style: normal;
+}
+
+
+@font-face {
+	font-family: 'OCHA-Bounded';
+	src: url('OCHA-Bounded.eot');
+	src: local('☺'), url('OCHA-Bounded.woff') format('woff'), url('OCHA-Bounded.ttf') format('truetype'), url('OCHA-Bounded.svg') format('svg');
+	font-weight: normal;
+	font-style: normal;
+}
+
+.un {  
+  display: inline-block;
+  font-family:  'OCHA-Unbounded';
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.unb {  
+  display: inline-block;
+  font-family: 'OCHA-Bounded';
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.un-family-protect:before {content:'!'}
+.un-family-house:before {content:'đ'}
+.un-chit-chat:before {content:'l'}
+.un-pragnent:before {content:'b'}
+.un-children:before {content:'Z'}
+.un-family:before {content:'W'}
+.un-truck:before {content:'Ĭ'}
+.un-water-glass:before {content:'Ì'}
+.un-water-drop:before {content:'Ï'}
+.un-water-facility:before {content:'Ð'}
+.un-water-trucking:before {content:'Ñ'}
+.un-nutrition:before {content:'$'}
+.un-education:before {content:'%'}
+.un-protection:before {content:'&'}
+.un-gas-station:before {content:'ĭ'}
+.un-health:before {content:'+'}
+.un-explosive-mine:before {content:'á'}
+.un-water-tap:before {content:'*'}
+.un-vaccine:before {content:'Ä'}
+.un-first-aid:before {content:'Ã'}
+.un-school:before {content:'Ĕ'}
+.un-university:before {content:'Ę'}
+.un-disability:before {content:'d'}
+.un-t-shirt:before {content:'³'}
+.un-textbook:before {content:'j'}
+.un-road-barrier:before {content:'ì'}
+.un-siege:before {content:'í'}
+.un-road-blocked:before {content:'ü'}
+.un-road-closed:before {content:'þ'}
+.un-plane:before {content:'ğ'}
+.un-food:before {content:')'}
+.un-balance:before {content:'/'}
+.un-police:before {content:'1'}
+.un-insect:before {content:'6'}
+.un-armed-child:before {content:'e'}
+.un-armed-man:before {content:'c'}
+.un-group-leader:before {content:'h'}
+.un-dollar-sign:before {content:'s'}
+.un-money-bag:before {content:'u'}
+.un-pie-graph:before {content:'w'}
+.un-graph:before {content:'{'}
+.un-computer-scr:before {content:'}'}
+.un-trash-can:before {content:'Ç'}
+.un-block-sign:before {content:'ï'}
+.un-cross-sign:before {content:'ñ'}
+.un-geo-tag:before {content:'¥'}
+.un-wells:before {content:'Æ'}
+.un-pill:before {content:'Á'}
+.un-soap:before {content:'º'}
+.un-box:before {content:'´'}
+.un-house:before {content:'Ĉ'}
+.un-office:before {content:'Ė'}
+.un-warehouse-box:before {content:'ĕ'}
+.un-ngo-office:before {content:'Đ'}
+.un-refugee-camp:before {content:'Ö'}
+.un-road:before {content:'Ħ'}
+.un-ship:before {content:'Ĩ'}
+.un-prefab-toilet:before {content:'Ê'}
+.un-tent:before {content:'Â'}
+.un-cereals:before {content:'¶'}
+.un-infant:before {content:'X'}
+.un-man:before {content:'\'}
+.un-woman:before {content:'^'}
+.un-calendar:before {content:'¤'}
+.un-mosquito:before {content:'Å'}
+.un-document:before {content:'©'}
+.un-class-room:before {content:'£'}
+.un-no-parking:before {content:'ê'}
+.un-wrench-key:before {content:'~'}
+.un-document-edit:before {content:'x'}
+.un-bar-graph:before {content:'¦'}
+.un-flame:before {content:'='}
+.un-winter:before {content:':'}
+.un-health-center:before {content:'Ě'}
+/* 
+    Created on : Apr 22, 2017, 1:09:29 AM
+    Author     : hshatti
+*/
+

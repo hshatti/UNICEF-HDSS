@@ -1,0 +1,135 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : Dec 15, 2016, 6:04:24 PM
+    Author     : Haitham
+*/
+.grp0 {background:#444;color:white;font-weight: bold}
+.grp1 {background:#666;color:white;font-weight: bold}
+.grp2 {background:#888;color:white;font-weight: bold}
+.grp3 {background:#aaa;color:white;font-weight: bold}
+/*.dbgrid tr.data td {border-left:lightgray 1px dotted}*/
+.dbgrid {border-collapse: separate;border-spacing: 1px;}
+.dbgrid td {border: solid white 0px}
+.hottrack:hover {border-width: 2px;padding:2px ;border-color: dodgerblue;cursor:default}
+.ui-selected, .ui-selecting {background: lightskyblue;cursor:default}
+
+.dbgrid td.num {text-align:right}
+.dbgrid tr.grpheader td {text-align:left;border-bottom: solid 1px lightgray}
+.dbgrid tr.grpfooter td {border-top:solid 1px lightgray;border-bottom:solid 1px black;font-weight:bold}
+.pan-input input , .pan-input select {width:400px;padding: 4px;border: silver solid 1px;border-radius: 4px }
+.pan-input label {text-align: right; display:block}
+.dbcontrol.datepicker,.dbcontrol[type=password] {width:auto}
+.ui-attention {box-shadow:lightcoral 0 0 2px 2px}
+.ui-autocomplete-category {font-weight: bold;background: lightgray;padding: .2em .4em; margin: .4em 0 .1em; line-height: 1.5;font-size: 110% }
+.field-lookup {}
+#frmEdit {max-height: 800px;overflow: auto}
+.checkList {border: black 1px solid;text-align: left; max-height:250px; overflow:auto}
+.checkList .selected .checkElement {background:linear-gradient(whitesmoke,lightblue);border-bottom:dotted 1px}
+.checkElement{overflow:auto}
+.checkElement [type=text]{width:50px;display:none}
+
+#pages {
+   margin:auto;
+   padding:4px;
+   font-family:  "Tahoma",sans-serif;
+   font-size : 13px;
+   text-align: center;
+   max-width: 800px;
+   display: inline-block
+}
+#pages a {
+  text-decoration: none;
+  padding: 2px;
+  width: 20px;
+  color:white;
+  display: inline-block ;
+  background: gray;
+}
+#pages span {padding:2px;width: 20px;display:inline-block;background: lightgray}
+#pages a:hover {background: dodgerblue}
+
+.pan-import {
+  position:relative;
+}
+.pan-import button {
+    background: #333;
+    color: white;
+    float: right;
+    border: none;
+    border-radius: 4px;
+    margin: 4px;
+    padding: 4px;
+}
+.pan-import button:hover {
+    background: blue;
+}
+
+.pan-import div{
+   display:inline-block;
+}
+.error {
+    font-family: "Segoe UI Light",sans-serif;
+    color:red;
+    background:#fee;
+    left:0;right:0;
+    line-height: 1.5em;
+    text-align:center;
+    margin: 0;
+    padding: 4px;
+}
+.info {
+    font-family: "Segoe UI Light",sans-serif;
+    color:green;
+    background:#efe;
+    left:0;right:0;
+    line-height: 0.5em;
+    text-align:center;
+    margin: 0;
+    padding: 4px;
+}
+.warning {
+    font-family: "Segoe UI Light",sans-serif;
+    color: orange;
+    background:#ffe;
+    position:relative;
+    left:0;right:0;
+    line-height: 0.5em;
+    text-align:center;
+    margin: 0;
+    padding: 4px;
+}
+
+/*#tblResult {width:100%} */
+
+#tblResult {}
+#tblResult th,td {
+  padding:4px;
+  font-family: san-serif,"Tahoma";
+  font-size : small;
+}
+#tblResult .grdbtn{
+   width:20px;
+   background: #444;
+   color:white;
+   border-radius: 4px;
+   cursor: pointer;
+}
+
+#tblResult .grdbtn:hover {
+   background: #007fff;
+}
+#tblResult th {
+   background: #CDE4FC ;color:gray; border: #64a4e6 1px solid;
+}
+.marked {background: lightyellow}
+
+#tblResult tr.data:nth-child(even){
+  background   : lightgrey; 
+}
+#tblResult tr.data:nth-child(odd){
+  background   : white; 
+}

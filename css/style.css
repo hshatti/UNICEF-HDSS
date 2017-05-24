@@ -1,0 +1,201 @@
+/*------------------------------
+TODO : lots and lots of house keeping 
+-------------------------------*/
+
+body {margin: 0px auto;font-family: sans-serif; font-size: 14px}
+header {
+    position: fixed;
+    padding-left: 0px;
+    top:0;
+    left:0px;
+    right:0px;
+    height: 46px;
+    background: dodgerblue;
+    z-index: 2;
+    transition: margin-left .5s
+    /*border-bottom: black 1px solid*/
+}
+footer {
+    position: fixed;
+    left: 0px;
+    height:16px;
+    right: 0px;
+    bottom: 0px;
+    border-top: lightgray 1px solid;
+    padding: 2px 0 ;/*6px 0px 0px 0px*/;
+    text-align: center;
+    text-shadow: 1px 1px 1px white;
+    background:linear-gradient( silver,gray);
+    color:black;
+    font: 80% sans-serif
+}
+
+img.hlogo {padding:4px 8px;width: 150px;top:1px;position: relative;float: left;margin:0}
+.loader {
+                border: 4px solid #f3f3f3; /* Light grey */
+                border-top: 4px solid #3498db; /* Blue */
+                border-radius: 50%;
+                width: 24px;
+                height: 24px;
+                animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.btnNormal{
+    width: 200px;padding:8px;border:none 1px lightgray;border-radius: 4px;color:white;background: dodgerblue;font-weight:bold
+}
+.btnNormal:hover {background: blue;transition: 0.5s}
+.btnNormal:disabled {background: silver;}
+
+.custom-combobox {
+    position: relative;
+    display: inline-block;
+}
+.custom-combobox-toggle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right:-4px;
+    padding: 0;
+}
+.custom-combobox-input {
+    margin: 0;
+    padding: 5px 10px;
+}
+/*fieldset.CheckList span {position: relative;padding:4px 0;left:52px;right:36px}*/
+/*fieldset.CheckList span:nth-child(even) {background:lightgray}*/  
+
+.dbgrid {border-radius: 2px; box-shadow: 1px 1px 3px 0 gray}
+/*.dbgrid th {background :#bbb;border-left:white 1px solid;text-align:center}
+.dbgrid tr:nth-child(even) {background:#f0f0f0}
+/*.dbgrid tr:hover {background:lightgray;transition: 0.2s}*/
+.logout-form {float:right;padding:0px;border: 0px;color:white;font: 12px sans-serif }
+.logout-button {border: lightgray 1px solid ;color:white ;background-color: navy;padding:2px 6px;margin:2px}
+.logout-button:hover {background-color: grey} 
+/*#btnLogin {padding:4px;float:right;border:solid 1px white ;background-color: #333;color:white;font: 12px "Tahoma", sans-serif}
+#btnLogin:hover {background-color: grey} */
+.rep div{text-align: left;height: auto;max-height: 100px}
+.page-container {position: relative;border: 0px;border-radius:4px; margin: 50px 4px 30px 4px;
+                /*box-shadow: 1px 1px 4px 1px gray*/
+}
+.ui-tabs .ui-tabs-panel {padding: 4px}
+#wait {position: fixed;top:0;width:100%;height:100%;padding-left: 50%; padding-top:25%;text-align: center;font-family: sans-serif; z-index: 10000;color: white;background: black;opacity:0.5}
+
+/*h1 {color: white;background: dodgerblue; line-height: 40px;}*/
+h3 {border-width: 0px;border-spacing: 0px;font-size: 12px;margin: 0px}
+#design {text-align:left; height: auto;overflow: auto}
+#uppertabs {overflow:auto}
+.left-menu {float: left;font-size: 12px;padding: 2px; width: 250px}
+.top-menu {font-size: 10px;padding: 0px; width:100%;height: 14px; background: lightgreen}
+.ui-widget {font-size: 12px}
+.prog {height: 1.2em;min-width: 80px;text-align: center; position: relative}
+#menuRun {width:100px;z-index: 1}
+#sidenavshow {background: #0070C0;width:32px;text-align: center; padding:3px;float:left; font-size:30px;cursor:pointer;color: white}
+#sidenavshow:hover {background: #888;transition: background .3s}
+#mainpage {
+    transition: margin-left .5s;
+    margin-left: 250px;
+    padding: 4px;
+}
+input[type=text],input[type=search] {outline: none ;padding: 4px;border: silver solid 1px;border-radius: 4px}
+input:focus {border-color:steelblue; box-shadow: steelblue 0 0 2px 1px}
+
+.sidenav {
+    top: 46px;
+    bottom: 21px;
+/*    top: 0;
+    bottom:0;*/
+    left: 0;
+    width: 250px;
+    position: fixed;
+    z-index: 3;
+    font-family: "Segoe UI",Tahoma,sans-serif;
+    font-size: 14px;
+    color: #818181;
+    background-color: #111;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 60px;
+    word-wrap: normal;
+}
+
+.sidenav .input-search {background:#333;color:silver; margin: 0 0 25px 40px ;padding: 4px; border-style: none ;border-radius: 8px}
+
+.sidenav .closeNav {
+    position: absolute;
+    display:none;
+    top: 0;
+    height: 20px;
+    line-height: .5em;
+    font-size: 30px;
+    right : 0px;
+    padding: 8px;
+    width: auto;
+
+}
+
+.sidenav a:hover {
+    background: #444;
+}
+
+.dropdown {
+    position: relative;
+    display: inline;
+    width:40px
+}
+.sidenav a ,.dropbtn{
+    padding: 8px 8px 8px 40px;
+    color: #818181;
+    text-decoration: none;
+    display: block;
+    transition: 0.3s;
+    cursor: pointer;
+}
+
+
+.dropbtn {
+    border: none;
+    cursor: pointer;
+    padding:8px 8px 8px 40px;
+    width: 150px;
+    display: inline-block;
+
+}
+
+.dropdown-content {
+    display: none;
+    background: #111;
+    position: fixed;
+    left: 198px;
+    border:  solid 1px #444;
+    min-width: 160px;
+    z-index: 1;
+}
+
+.dropdown-content a {
+    display: block;
+}
+
+.dropdown:hover .dropdown-content {
+    display: inline-block;
+}
+
+.dropdown:hover .dropbtn {
+    background: #444;
+}
+
+/* 
+Document   : style
+Created on : 18-Dec-2014, 10:19:37
+Author     : hshatti
+Description:
+Purpose of the stylesheet follows.
+*/
+
+root { 
+display: block;
+}
+
