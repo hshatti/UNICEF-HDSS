@@ -3,9 +3,560 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-/* global txt */
+/* global txt, documnet */
+function rgbStr(r, g, b) {
+        return "#" + (16777216 | b | (g << 8) | (r << 16)).toString(16).slice(1);
+}
+function rgbtoString() {
+    return this.hex;
+}
+function packageRGB(r, g, b, o) {
+        r *= 255;
+        g *= 255;
+        b *= 255;
+        var rgb = {
+            r: r,
+            g: g,
+            b: b,
+            hex: rgbStr(r, g, b),
+            toString: rgbtoString
+        };
+        rgb.opacity = o;
+        return rgb;
+    };
+function hsb2rgb(h, s, v, o)  {
+        if (typeof(h)=="object" && "h" in h && "s" in h && "b" in h) {
+            v = h.b;
+            s = h.s;
+            o = h.o;
+            h = h.h;
+        }
+        h *= 360;
+        var R, G, B, X, C;
+        h = (h % 360) / 60;
+        C = v * s;
+        X = C * (1 - Math.abs(h % 2 - 1));
+        R = G = B = v - C;
+
+        h = ~~h;
+        R += [C, X, 0, 0, X, C][h];
+        G += [X, C, C, X, 0, 0][h];
+        B += [0, 0, X, C, C, X][h];
+        return packageRGB(R, G, B, o);
+    };
+function getNextColor(st1,value){
+    if (st1===undefined) return {h:0,s:1,b:0.75}
+    var st = st1;
+            rgb = this.hsb2rgb(st.h, st.s, st.b);
+        st.h += .075;
+        if (st.h > 1) {
+            st.h = 0;
+            st.s -= .2;
+            st.s <= 0 && (st1 = {h: 0, s: 1, b: st.b});
+        }
+        return st;
+}
+
+//Array.prototype.sumArray = function (arr) {
+//    var sum = [];
+//    if (arr != null && this.length == arr.length) {
+//        for (var i = 0; i < arr.length; i++) {
+//            sum.push(this[i] + arr[i]);
+//        }
+//    }
+//    return sum;
+//};
+var sum = function (a,b){ return Number(a)+Number(b);},
+max = function (a,b){ return Math.max(Number(a),Number(b));},
+min = function (a,b){ return Math.min(Number(a),Number(b));};
+
+function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+  var angleInRadians = (angleInDegrees-90) * Math.PI / 180.0;
+  return {
+    x: centerX + (radius * Math.cos(angleInRadians)),
+    y: centerY + (radius * Math.sin(angleInRadians))
+  };
+}
+
+function describeArc(x, y, radius, startAngle, endAngle,line){
+    var start = polarToCartesian(x, y, radius, endAngle);
+    var end = polarToCartesian(x, y, radius, startAngle);
+    var largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+    var d = (line?'L':'M')+[ start.x, start.y].join(",")+"A"+[radius, radius, 0, largeArcFlag, 0, end.x, end.y].join(",");
+    return d;       
+}
+
 if ($&& typeof $.widget=='function') // am i jQuery?
   $( function() {
+        $.widget( "custom.donut", {
+       _create:function(){
+            xmlNS='http://www.w3.org/2000/svg';
+            this.svg=$(document.createElementNS(xmlNS,'svg'));
+            this.g=$(document.createElementNS(xmlNS,'g'));
+//            this.arc=$(document.createElementNS(xmlNS,'path'));
+            this.arcs=[];
+            this.circle=$(document.createElementNS(xmlNS,'path'));
+            if (this.options.caption) ;else this.options.caption=this.element.attr('text');
+            if (this.options.radius!==undefined) this.r=this.options.radius;else this.r=100;
+            this.txt=$(document.createElementNS(xmlNS,'text')).css({alignmentBaseline:'middle',textAnchor:'middle',font:'normal '+this.r*0.42+'px Candara,sans-serif',fill:'#888'});
+            if (this.options.percents===undefined){
+                this.options.percents=this.element.attr('percents').split(' ');
+                this.options.percent=this.options.percents.reduce(sum);
+            } else {
+                this.options.percent=this.options.percents.reduce(sum);
+            }
+            for (i in this.options.percents) 
+                this.arcs.push($(document.createElementNS(xmlNS,'path')));
+            if (this.options.caption) this.txt.html(this.options.caption);
+            this.element.append(this.svg);
+            this.angles=[];
+            this.angle=this.options.percent*360/100;
+            for (i in this.options.percents) this.angles.push(this.options.percents[i]*360/100) ;
+            transition=1000; 
+            fps=50; 
+            stepms=transition/fps;   
+            step=this.angle/fps;     
+            //var an=0;
+            //arc.addClass('arc');
+            if (this.options.strokeWidth===undefined) this.options.strokeWidth=this.r*0.12;
+            if (this.options.circle){
+               this.options.circle.strokeWidth=this.options.strokeWidth;
+               this.circle.css(this.options.circle);
+            }
+            else this.circle.css({stroke:'#034'});
+            hsb={h:-0.075,s:1,b:0.75};
+            if (this.options.colors===undefined) {
+                this.options.colors=[];
+                for (i in this.arcs) {
+                    hsb=getNextColor(hsb);
+                    this.options.colors.push(hsb2rgb(hsb.h,hsb.s,hsb.b).hex);
+                }
+            }
+
+            if (this.options.arc) {
+                this.options.arc.strokeWidth=this.options.strokeWidth;
+            }
+            else this.g.css({strokeWidth:this.options.strokeWidth,fill:'none'});
+            for (arc in this.arcs){
+                if (this.options.arc) this.arcs[arc].css(this.options.arc);
+                this.arcs[arc].css('stroke',this.options.colors[arc]);
+            }
+            this.svg.width(this.r+parseInt(this.options.strokeWidth));
+            this.svg.height(this.r+parseInt(this.options.strokeWidth));
+            this.w=this.svg.width();this.h=this.svg.height();
+            this.txt.attr({x:this.w/2,y:this.h/2});
+            this.g.append(this.circle);
+            for (i in this.arcs) this.g.append(this.arcs[i]);
+            this.svg.append(this.g);
+            this.svg.append(this.txt);
+            this.an=0;
+            this.ans=[];for (i in this.angles) this.ans.push(0);
+            this.anim=setInterval(function (step,that){
+              if (that.options.animate) {
+                  that.an=Math.min(that.an+step,that.angle);
+                  for (i in that.angles) that.ans[i]=Math.min(that.ans[i]+step,that.angles[i]);
+              }
+              else {
+                  that.an=that.angle;
+                  that.ans=that.angles;
+                  va=that.options.percent;
+//                  debug;
+              }
+              if (that.an<that.angle) va=Math.floor(that.options.percent*that.an/that.angle);
+//              console.log('va',va,'/percent',that.options.percent,that.an,that.angle);
+              if (that.options.caption!==undefined); 
+              else  {
+                  that.txt.empty().append(va).append($(document.createElementNS(xmlNS,'tspan')).append('%').css({alignmentBaseline:'hanging',font:'normal '+that.r*0.2+'px Candara'}));
+              }
+              var sliceStart=0;
+              for (arc in that.arcs) {
+                  that.arcs[arc].attr('d', (that.options.arcSlice?'M'+[that.w/2,that.h/2].join(','):'')+  describeArc(that.w/2,that.h/2,that.r/2,sliceStart   ,sliceStart+that.ans[arc],that.options.arcSlice)+(that.options.arcSlice?'z':''));
+                  sliceStart=sliceStart+that.ans[arc];
+              }
+              that.circle.attr('d',describeArc(that.w/2,that.h/2,that.r/2,0,359.99)+'z');
+              if (that.an==that.angle) {
+                  clearInterval(that.anim);
+                  
+                };
+//                console.log(that.arcs);
+            },stepms,step,this);
+       },
+       percents:function(va){
+              if (va==undefined) return(this.options.percents);
+              this.options.percents=va;
+              this.option.percent=va.reduce(sum);
+//              console.log(va);
+              this.angles=[];
+              for (i in this.options.percents) this.angles.push(Math.min(this.options.percents[i]*360/100,359.9999)) ;
+              this.ans=this.angles;
+              this.angle= Math.min(this.options.percent*360/100,359.9999);
+              if (this.options.caption) {
+                  this.txt.html(this.options.caption);
+              }
+              else 
+                  this.txt.html(va+'<tspan style="alignment-baseline:hanging;font:normal '+this.r*0.2+'px Candara">%</tspan>'); 
+              var sliceStart=0;
+              for (arc in this.arcs) {
+                  this.arcs[arc].attr('d', (this.options.arcSlice?'M'+[this.w/2,this.h/2].join(','):'')+  describeArc(this.w/2,this.h/2,this.r/2,sliceStart   ,sliceStart+this.ans[arc],this.options.arcSlice)+(this.options.arcSlice?'z':''));
+                  sliceStart=sliceStart+this.ans[arc];
+              }
+              this.circle.attr('d',describeArc(this.w/2,this.h/2,this.r/2,0,359.99)+'z');
+              },
+       _destroy:function(){
+         this.svg.remove();
+       },
+        _setOptions:function(options){
+            this.percents(options.percents);
+            this._super( options );
+        }
+    }),
+//    $.widget('custom.bars',{
+//        _create:function(){
+//                defaultStyle=window.getComputedStyle(this.canvas);
+//                Raphael.getColor.reset();
+//                
+//                if (params.minTicks) minTicks=params.minTicks;else minTicks=3;
+//                if (params.left==undefined) var left=40;else left=params.left;
+//                if (params.top==undefined) var top=40;else top=params.top;
+//                horizonal=params.horizonal;
+//                barWidth=params.barWidth;
+//                colors=params.colors;
+//                if (params.bottom) buttom=params.bottom ;else bottom=60;
+//                if (params.right) right=params.right ;else right=40;                maxVal=0;
+//                if (params.textAngleX) textAngleX=params.textAngleX;else textAngleX=0;
+//                if (params.textAngleY) textAngleY=params.textAngleY;else textAngleY=0;
+//                series=params.data;
+//                if (!colors){
+//                    hsb={h:-0.075,s:1,b:0.75};colors=[];
+//                    for (serie in series) {
+//                        colors.push(getNextColor(hsb).hex);
+//                    }
+//                }
+//                //start legends 
+//                legendLabels=Object.keys(series);
+//                //draw legend;
+//                this.drawLegend({legendLabels:legendLabels,colors:colors});
+//                stack=params.stack;
+//                if (params.w==undefined) w=this.canvas.clientWidth-left-right;else w=params.w;
+//                if (params.h==undefined) h=this.canvas.clientHeight-top-bottom;else h=params.h;
+//                w=Math.round(w),h=Math.round(h);textMaxSizeX=0;
+//                if (params.labels==undefined) {
+//                    labels=[];
+//                    for(serie in series){
+//                        for (i=0; i<series[serie].length; i++) labels[i]=i;
+//                        break;
+//                    }
+//                } else labels=params.labels;
+//                if (stack) 
+//                    {
+//                       a=[];
+//                       for (serie in series)
+//                          if (typeof(series[serie])=='object') 
+//                            for (j=0 ;j<series[serie].length;j++)
+//                               {a[j]=(a[j]?a[j]:0)+Number(series[serie][j]);}
+//                       maxVal=Math.max.apply(Math,a);
+//                    }
+//                else for (serie in series){
+//                  if (typeof(series[serie])=='object') {maxVal=Math.max(Math.max.apply(Math,series[serie]),maxVal);}
+//                }
+//                var path= [];
+//                if (params.rulerSpan) {
+//                    rulerSpan=params.rulerSpan ;
+//                    valuelines=(Math.floor(horizonal?w:h)/(rulerSpan));
+//                }else {
+//                    ticks=alignMaxTicks(maxVal,minTicks);
+//                    maxVal=ticks[0];
+//                    valuelines=ticks[1];
+//                    rulerSpan=Math.round(Math.floor(horizonal?w:h)/valuelines);
+//                }
+//                this.setStart();
+//                if (params.drawAxis){
+//                    if (params.drawAxis.x) this.path(['M',left,top+h,'L',left+w,top+h]);
+//                    if (params.drawAxis.y) this.path(['M',left,top,'L',left,top+h]);
+//                } else {
+//                    this.path(['M',left,top+h,'L',left+w,top+h]);
+//                    this.path(['M',left,top,'L',left,top+h]);
+//                }
+//                axis=this.setFinish();
+//                axis.attr({'stroke-width':1,stroke:'black'});
+//                columnWidth = (params.horizonal?h:w) / (labels.length);
+//                this.setStart();
+//                if (horizonal) {
+//                    for (var i=0;i<=valuelines+1;i++){
+//                        path=path.concat("M",left +(rulerSpan*(i)),top,"V",top+h);//
+//                        textLeft=left+(i*rulerSpan);
+//                        textTop=top+h+8;
+//                        txt=this.text(textLeft,textTop,roundMillion(i*maxVal/valuelines,params.roundingStyle))// text of the values (X Axis)//
+//                        txt.attr({font:defaultStyle.font,"text-anchor":textAngleX===0?"middle":"end"}).rotate(textAngleX,textLeft,textTop);// adjest text and font 
+//                        textMaxSizeX=Math.max(textMaxSizeX,txt.attr("textHeight"));
+//                    }
+//                }
+//                else {
+//                    for (var i = 0;i<=valuelines; i++) {
+//                        path = path.concat(["M", left, h+top-(rulerSpan*(i)) , "H", left + w ]);// horisonal lines
+//                        textLeft=left-4;
+//                        textTop=top+h-(i*rulerSpan);
+//                        txt=this.text(textLeft,textTop,roundMillion(i*maxVal/valuelines,params.roundingStyle));// text of the values (Y Axis)
+//                        txt.attr({font:defaultStyle.font,"text-anchor":"end"}).rotate(textAngleY,left-4,top+h-(i*rulerSpan));// adjest text and font 
+//                        textMaxSizeX=Math.max(textMaxSizeX,txt.attr("font-size"));
+//                    }
+//                }
+//                axisValues=this.setFinish();
+//                //draw grid 
+//                grid=this.path().attr({"path":path,"stroke":"silver","stroke-width":0.5});
+//// draw the Bars
+//                if (barWidth==null) barWidth= columnWidth*0.7;
+//                a=[];j=0;
+////                if(typeof(series)=='object') series.length=Object.keys(series).length;
+//                for (serie in series)
+//                { 
+//                    if(typeof(series)!='object') continue;
+//                    colors.push(colors[0]);color=colors.shift();
+//                    vals=[];
+//                    if (horizonal)  for (i=0;i<series[serie].length;i++) {
+//                        if (!a[i]) a[i]=0;
+//                        rect=this.rect(Math.floor(a[i]*w/maxVal)+left,top+Math.round((stack?0:j)*barWidth/(stack?1:Object.keys(series).length))+(columnWidth-barWidth)/2+columnWidth*i,Math.ceil(series[serie][i]*w/maxVal),barWidth/(stack?1:Object.keys(series).length));
+//                        rect.attr({"stroke":"none","fill":color});
+//                        if (stack||Object.keys(series).length===1) a[i]=a[i]+series[serie][i];
+//                    } 
+//                    else for (i=0;i<series[serie].length;i++) {
+//                        if (!a[i]) a[i]=0;
+//                        rect=this.rect(left+((stack?0:j)*barWidth)/(stack?1:Object.keys(series).length)+(columnWidth-barWidth)/2+columnWidth*i,top+h-Math.floor((series[serie][i]+a[i])*h/maxVal),barWidth/(stack?1:Object.keys(series).length),Math.ceil(series[serie][i]*h/maxVal));
+//                        rect.attr({"stroke":"none","fill":color});
+//                        if (stack||Object.keys(series).length===1) a[i]=a[i]+series[serie][i];
+//                    }
+//                    j++;
+//                }
+//// draw labels 
+//                if(horizonal) for (i =0; i<labels.length; i++) {
+//                    textLeft=left-6;
+//                    textTop=Math.round(top+columnWidth*(0.5+i));
+//                    this.text(textLeft,textTop,(labels?labels[i]:i)).attr({font:defaultStyle.font,"text-anchor":"end"}).rotate(textAngleY,textLeft,textTop); // text of the labels (Y Axis)
+//                    this.setStart();
+//                    if (stack||Object.keys(series).length===1) if(params.showValues){
+//                        textLeft=left+2+a[i]*w/maxVal;
+//                        txt=this.text(textLeft,textTop,roundMillion(a[i],params.roundingStyle)).attr({font:defaultStyle.font,"text-anchor":"start"}); // text of the labels (Y Axis)
+//                    }
+//                    this.setFinish().translate(0,2);
+//                } else for (i =0; i<labels.length; i++) {                    
+//                    textLeft=Math.round(left+columnWidth*(0.5+i));    
+//                    textTop=top+h+10;
+//                    this.text(textLeft,textTop,(labels?labels[i]:i)).attr({font:defaultStyle.font,"text-anchor":(textAngleX!=0?"end":"middle")}).rotate(textAngleX,textLeft,textTop); // text of the labels (X Axis)
+//                    this.setStart();
+//                    if (stack||Object.keys(series).length===1) if(params.showValues){
+//                        textTop=top+h -a[i]*h/maxVal;
+//                        txt=this.text(textLeft,textTop,roundMillion(a[i],params.roundingStyle)).attr({font:defaultStyle.font,"text-anchor":(textAngleX!=0?"end":"middle")}); // text of the labels (X Axis)
+//                    }
+//                    this.setFinish().translate(0,-txt.getBBox().height/2);
+//                }
+//            }
+//        }
+//    ),
+    $.widget("custom.bar",{
+        _create:function(){
+//            console.log(this.element);
+            var barValues=this.options.values||this.element.attr('data-value').toString().split(' ');
+            this.bars=[];
+            this.numTotal=barValues.reduce(sum);
+            barTotal=0;barLeft=0;
+            //this.numTotal=0;
+            this.numMax=this.options.max||Number(this.element.data('max').toString().replace(',',''));
+            m=Math.max(this.numMax,this.numTotal);
+            this.r=$('<span>');
+            //if (this.numMax<this.numTotal){
+            this.filler=$('<div class="filler">');
+            if (this.options.labels){
+                if(this.options.labels.value) this.filler.html('<b><span style="top:-1.2em;color:#333">'+this.options.labels.value+'</span></b>');
+                if (this.options.labels.max) this.filler.append('<b><span style="right:0;top:-1.2em;color:#333">'+this.options.labels.max+'</span></b>');
+            }
+            if (this.numMax<this.numTotal) {
+                this.filler.width(this.element.width()*100*((this.numMax)/this.numTotal)/$(document).width()+'%');
+                this.r.css('right',100*((this.numTotal-this.numMax)/this.numTotal)+'%');
+                this.element.css({background:'white'});
+            }
+            else {
+                this.filler.width(this.element[0].style.width);
+            }
+            this.filler.css({position:'absolute',background:'#444'});
+            this.element.append(this.filler);
+          //  } else this.element.html('<span style="top:-1.2em;color:#333">Reach</span><span style="right:0;top:-1.2em;color:#333">Target</span>');
+            this.div=$('<div>');
+            this.div.addClass('stack');
+            this.element.append(this.div);
+            this.l=$('<span>');
+            this.pointer=$('<div>');
+            this.pointerCaption=$('<div>');
+            this.pointerCaption[0].className='pointer pointer-caption';
+            this.l[0].className='num l';
+            this.r[0].className='num r';
+            this.div.append(this.l);
+            this.div.append(this.r);
+            this.r.text(this.numMax>999999?Number((this.numMax/1000000).toFixed(this.options.decimals)).toLocaleString()+' m':this.numMax.toLocaleString());
+            for (i=0;i<barValues.length;i++)
+            {
+                b=barValues[i];
+                this.bars.push($('<div>'));
+                this.bars[i].addClass('pos');
+                this.div.append(this.bars[i]);
+                barWidth=Number(b.replace(',',''))*100/m;//console.log(barWidth+'%');
+                setTimeout(function(bar,b,m,barWidth){bar.css({width:barWidth+'%'});},1,this.bars[i],b,m,barWidth);
+    //            this.bars[i].style.width=(Number(b.replace(',',''))*100/m)+'%';
+                barLeft=barLeft+barWidth; 
+                barTotal=barTotal+barWidth;
+                //this.numTotal=this.numTotal+Number(b.replace(',',''));
+            }
+    //        pointerCaption.innerHTML=Number(1000*numTotal/m).toFixed()/10+'%';
+            this.options.decimals=this.options.decimals||0;
+            if(this.options.pointer){
+                this.pointer.addClass('pointer');
+                this.div.append(this.pointer);
+                this.div.append(this.pointerCaption);
+                this.pointerCaption.css({left:-this.pointerCaption.width()/2+'px'});
+            }
+            var i=0;
+            this.s=setInterval(
+                    function(that,l,m,pointer,pointerCaption,div){
+                        if (pointer) 
+                            if(div.width()-pointer.position().left<46)
+                            {
+                              pointerCaption.css({position:'absolute',left:'',right:'-2px'});
+                            } 
+                        numTotalCount=m*(pointer.position().left)/div.width();
+                        l.text(numTotalCount>999999?((numTotalCount/1000000).toFixed(that.options.decimals)).toLocaleString()+' m':Number(numTotalCount.toFixed(that.options.decimals)).toLocaleString());
+                        if (pointer) pointerCaption.html(Number(100*numTotalCount/that.numMax).toFixed(that.options.decimals)+'%');
+                        i++;
+                        if (numTotalCount>=that.numTotal||i>20){
+                            clearInterval(that.s);
+                            if(pointer) pointerCaption.html(Number(100*that.numTotal/that.numMax).toFixed(that.options.decimals)+'%');
+                            l.text(that.numTotal>999999?Number((that.numTotal/1000000).toFixed(that.options.decimals)).toLocaleString()+' m':that.numTotal.toLocaleString());
+                        }
+                    } ,50,this,this.l,m,this.pointer,this.pointerCaption,this.element);
+            //l.textContent=(numTotal>999999?((numTotal/100000).toFixed()/10).toLocaleString()+' m':numTotal.toLocaleString());
+            
+        },
+        value:function(va){
+            this.numTotal=va.reduce(sum);
+            m=Math.max(this.numTotal,this.numMax);
+            barTotal=0;barLeft=0;
+            for (i=0;i<va.length;i++)
+            {
+                b=va[i];
+                if(this.bars[i]===undefined) {
+                    this.bars.push($('<div>'));
+                    this.bars[i].addClass('pos');
+                    this.div.append(this.bars[i]);
+                }
+                barWidth=Number(b.toString().replace(',',''))*100/m;//console.log(barWidth+'%');
+                setTimeout(function(bar,b,m,barWidth){bar.css({width:barWidth+'%'});},1,this.bars[i],b,this.m,barWidth);
+    //            bars[i].style.width=(Number(b.replace(',',''))*100/m)+'%';
+                barLeft=barLeft+barWidth; 
+                barTotal=barTotal+barWidth;
+                //this.numTotal=this.numTotal+Number(b.replace(',',''));
+            }
+            var i=0;
+            this.s=setInterval(
+                    function(that,l,m,pointer,pointerCaption,div){
+                        numTotalCount=m*(pointer.position().left)/div.width();
+                        l.text(numTotalCount>999999?((numTotalCount/1000000).toFixed(that.options.decimals)).toLocaleString()+' m':Number(numTotalCount.toFixed(that.options.decimals)).toLocaleString());
+                        if (pointer) pointerCaption.html(Number(100*numTotalCount/that.numMax).toFixed(that.options.decimals)+'%');
+                        i++;
+                        if (numTotalCount>=that.numTotal||i>20){
+                            clearInterval(that.s);
+                            if(pointer) {
+                                pointerCaption.html(Number(100*that.numTotal/that.numMax).toFixed(that.options.decimals)+'%');
+                                if((div.width()-pointer.position().left)<46){
+                                    pointerCaption.css({position:'absolute',left:'',right:'-2px'});
+                                }
+                                else 
+                                  pointerCaption.css({left:-pointerCaption.width()/2+'px',position:'',right:''});
+                            }
+                            l.text(that.numTotal>999999?Number((that.numTotal/1000000).toFixed(that.options.decimals)).toLocaleString()+' m':that.numTotal.toLocaleString());
+                        }
+                        if (pointer) 
+                            if(div.width()-pointer.position().left<46){
+                                pointerCaption.css({position:'absolute',left:'',right:'-2px'});
+                            }
+                            else 
+                              pointerCaption.css({left:-pointerCaption.width()/2+'px',position:'',right:''});
+                        console.log(div.width()-pointer.position().left);
+                    } ,50,this,this.l,m,this.pointer,this.pointerCaption,this.element);
+
+            },
+        _destroy:function(){this.element.empty();}
+    }),
+    $.widget( "custom.holdOn", {
+       _create:function(){
+           if (this.options.waitElem===undefined) this.options.waitElem=$('<div class="loader">').donut({percents:[0],caption:' ',strokeWidth:1,arcSlice:1,circle:{stroke:'#f3f3f3',fill:'none'},arc:{fill:'#def'},colors:['#3498db']});
+           if (this.options.text===undefined) this.options.text=$('<span class="loader-text">');
+           this.options.text.html('<div>Loading...</div><span style="color:#3498db;font:bold 28px \'Candara\',sans-serif;line-height:2em;"></span>%');
+           this.loader=$('<div id="wait" style="display:none">').append(this.options.waitElem).append(this.options.text);
+           this.loader.appendTo(this.element)/*.width(Math.max(this.element.width(),600))*/;
+    //       this.loader.height(Math.max(this.element.height(),600));
+    //       this.loader.offset(this.element.offset());
+           this.loader.fadeIn('fast');
+           this.caption=this.options.text.find('span');
+           this.progress=0;
+           this.t=10;
+           this.f=function(that){
+               if (that.progress<100) that.progress++;
+               else clearTimeout(that.progTimer);
+               that.options.waitElem.donut({percents:[that.progress]});
+               that.caption.text(that.progress);
+               that.t*=1.06;
+               that.progTimer=setTimeout(that.f,that.t,that);
+           }
+           this.progTimer=setTimeout(this.f,this.t,this);
+       }, 
+       _destroy:function(){
+           clearTimeout(this.progTimer);
+//           this.options.text.find('div').text('Rendering');
+           this.progTimer=setInterval(function(that){
+               if (that.progress<100) that.progress=Math.min(that.progress+2,100);
+               that.caption.text(that.progress);
+               that.options.waitElem.donut({percents:[that.progress]});
+               if (that.progress>90) {
+                    that.loader.fadeOut(function(){
+                       $(this).remove();
+//                       console.log('loaded');
+                    });
+                    clearInterval(that.progTimer);
+                }
+           },
+           10,this);
+           
+       }
+    }),
+        $.widget( "custom.box", {
+       _create:function(){
+            duration=1500;
+            box=this.element.addClass('box box-round shadow');
+            ease=$('<div>').css({opacity:0,width:'0px',height:'1px',transition:(duration/1000)+'s'}).appendTo(box);
+            this.started=setTimeout(function(ease,that){
+                ease.css({width:'100%'});
+                clearTimeout(that.started);
+            },1,ease,this);
+            un=$('<div>').addClass('un fa-2x fa-fw').addClass(box.data('class'));
+            v=Number(box.attr('value'));
+            val=$('<div>').addClass('box-value').text(0);
+            cap=$('<div>').addClass('box-caption xsmall').html(box.data('caption'));
+            box.append(un).append(val).append(cap);
+             
+            var framerate=20;
+            timeinterval=duration/framerate;
+            var frame=0;
+            this.timer=setInterval(function(that,val,v,ease){
+                if (frame<framerate){val.text(Math.round(v*ease.width()/that.element.width()).toLocaleString());}
+                else{clearInterval(that.timer);val.text(v.toLocaleString());}
+                frame++;
+                
+            },timeinterval,this,val,v,ease);
+        }
+       , 
+       _destroy:function(){
+                   $(this).remove();
+           
+       }
+    }),
     $.widget( "custom.catcomplete",$.ui.autocomplete, {
        _create:function(){ 
          this._super();//calling parent class _create methode
@@ -40,8 +591,8 @@ if ($&& typeof $.widget=='function') // am i jQuery?
       _createAutocomplete: function() {
         var selected = this.element.children( ":selected" ),
           value = selected.val() ? selected.text() : "";
- 
         this.input = $( "<input>" )
+          .css('width',Math.max(this.element.width()/2,180))
           .prop('disabled',this.element.prop('disabled'))
           .prop('required',this.element.prop('required'))
           .appendTo( this.wrapper )
@@ -52,6 +603,7 @@ if ($&& typeof $.widget=='function') // am i jQuery?
             delay: 0,
             minLength: 0,
             source: $.proxy( this, "_source" ),
+//            select: function(){$(this).parent().prev().trigger('select');},
             select: function(){$(this).parent().prev().trigger('change');}
           })
           .tooltip({
@@ -67,6 +619,9 @@ if ($&& typeof $.widget=='function') // am i jQuery?
             this._trigger( "select", event, {
               item: ui.item.option
             });
+//            this._trigger( "change", event, {
+//              item: ui.item.option
+//            });
           },
  
           catcompletechange: "_removeIfInvalid"
@@ -164,7 +719,7 @@ if ($&& typeof $.widget=='function') // am i jQuery?
 function getValues(e){
     v=[];
     for (i=0;i<e.length;i++){
-      v[v.length]=e[i].value;  
+      v.push(e[i].value);  
     }
     return v;
 }
@@ -173,15 +728,15 @@ function getValues(e){
 function getContents(e,nullIfEmpty){
 
     v=[];
-    for (i=0;i<e.length;i++){
-      v[v.length]=nullIfEmpty?null:e[i].textContent;  
+    for (k=0;k<e.length;k++){
+      v.push(nullIfEmpty?null:e[k].textContent);  
     }
     return v;    
 }
 function getProps(e,p){
       v=[];
     for (i=0;i<e.length;i++){
-      v[v.length]=e[i][p];  
+      v.push(e[i][p]);  
     }
     return v;   
 }
@@ -204,7 +759,7 @@ function uilookupchange(e){
   $('select.dbcontrol[data-lookupfields]').each(function(i,el){
         if(e.target!==el){
           b=$(el).data('lookupfields').split(',');
-          c=arrayIntersect(a,b);console.log(a,b);
+          c=arrayIntersect(a,b);
           if (c.length>0&&c.length+1===a.length) {
               vl=[];
               for (j=0;j<c.length;j++) vl.push(v[j]);
@@ -255,15 +810,20 @@ function DoExcelUpload(tbl){
         $('#uploadprog').val(e.loaded);
 
     };
-    xhr.onload = function()
+    xhr.onload = function(e)
     {
+
       fileInput.value='';
       $('#uploadprog').hide();
       if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status == 0))
         {
+          //document.getElementById('ImpResult').innerHTML=xhr.responseText;
           
-          $('#ImpResult').html(xhr.responseText);
-          //$('#wait').hide();
+          if(xhr.responseText!='') // for some reason IE is posting a second empty reponse after successful process this is a workaround.
+              $('#ImpResult').html(xhr.responseText);
+          else console.log('empty response from IE why?!!!!');
+          
+            //$('#wait').hide();
         }
     };
     // upload success
@@ -519,11 +1079,18 @@ function selectableTable(table){
                 rowCells.eq(j).addClass("ui-selected");
             }        
         }
+        var v=0;
+        var a=0;
+        table.find('.ui-selected').map(function(i,c){t=parseFloat(c.textContent.replace(/,/g,''));if(t) v=v+t;if (c.textContent!=='')a++;return c});
+        if (a>1) {
+            table.attr('title','COUNT='+a+'\nSUM='+v.toLocaleString());
+        } else table.removeAttr('title');
     }
     table.disableSelection().find("td").mousedown(function (e) {
         isMouseDown = true;
         var cell = $(this);
         table.find(".ui-selected").removeClass("ui-selected"); // deselect everything
+        table.removeAttr('title');
         if (e.shiftKey) {
             selectTo(cell);                
         } else {
@@ -541,10 +1108,20 @@ function selectableTable(table){
     .bind("selectstart", function () {
         //return false;
     });
-
     $(document).mouseup(function () {
         isMouseDown = false;
-    });  
+    }).keydown(function(e) {
+        if (typeof(clipboard)==='undefined') return; 
+            if (e.ctrlKey&&e.key==='c'){
+            selected=table.find(".ui-selected").parent();
+            var textCopied='';
+            if (selected.length>0) console.log('Ctrl-C Pressed',selected.length);
+            for (i=0;i<selected.length;i++){
+                textCopied=textCopied+getContents($(selected[i]).find('.ui-selected')).join('\t')+(i<selected.length-1?'\n':'');
+            }
+            clipboard.copy({'text/plain':textCopied});
+        }
+    });
 
 }
 function arrayIntersect(a,b){
@@ -718,11 +1295,12 @@ function initgraph() {
                     
 }
 //process export
+function base64(s) { return window.btoa(unescape(encodeURIComponent(s))) }
+
 function fnExcelReport(table,name) { 
 $('#wait').show();
  var uri = 'data:application/vnd.ms-excel;base64,'
-, template = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>{worksheet}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body><table>{table}</table></body></html>'
-, base64 = function(s) { return window.btoa(unescape(encodeURIComponent(s))) }
+, template = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>{worksheet}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body><table>{table}</table></body></html>' 
 , format = function(s, c) { return s.replace(/{(\w+)}/g, function(m, p) { return c[p]; }) }
 if (!table.nodeType) table = $(table)[0];
 var ctx = {worksheet: name || 'Worksheet', table: table.innerHTML}
