@@ -17,7 +17,7 @@ and open the template in the editor.
 .hottrack:hover {border-width: 2px;padding:2px ;border-color: dodgerblue;cursor:default}
 .ui-selected, .ui-selecting {background: lightskyblue;cursor:default}
 
-.dbgrid td.num {text-align:right}
+td.num {text-align:right}
 .dbgrid tr.grpheader td {text-align:left;border-bottom: solid 1px lightgray}
 .dbgrid tr.grpfooter td {border-top:solid 1px lightgray;border-bottom:solid 1px black;font-weight:bold}
 .pan-input input , .pan-input select {width:400px;padding: 4px;border: silver solid 1px;border-radius: 4px }
@@ -31,7 +31,7 @@ and open the template in the editor.
 .checkList .selected .checkElement {background:linear-gradient(whitesmoke,lightblue);border-bottom:dotted 1px}
 .checkElement{overflow:auto}
 .checkElement [type=text]{width:50px;display:none}
-
+.label {font-weight:bold;color:#0070C0}
 #pages {
    margin:auto;
    padding:4px;
@@ -71,50 +71,55 @@ and open the template in the editor.
 .pan-import div{
    display:inline-block;
 }
-.error {
-    font-family: "Segoe UI Light",sans-serif;
-    color:red;
-    background:#fee;
+
+.message {
+    font: 14px 'Verdana',sans-serif;
+    overflow:auto;
+    padding:16px;
+    line-height: 2;
+    padding:16px 8px;
+    margin:4px;
     left:0;right:0;
-    line-height: 1.5em;
-    text-align:center;
-    margin: 0;
-    padding: 4px;
 }
-.info {
-    font-family: "Segoe UI Light",sans-serif;
-    color:green;
+.error {
+
+    background:#fee;
+    border-left: solid tomato 4px;
+}
+.success {
+    border-left: solid limegreen 4px;
     background:#efe;
-    left:0;right:0;
-    line-height: 0.5em;
-    text-align:center;
-    margin: 0;
-    padding: 4px;
 }
 .warning {
-    font-family: "Segoe UI Light",sans-serif;
-    color: orange;
-    background:#ffe;
-    position:relative;
-    left:0;right:0;
-    line-height: 0.5em;
-    text-align:center;
-    margin: 0;
-    padding: 4px;
+    border-left: solid orange 4px;
+    background:#ffc;
 }
+
+.info {
+    border-left: solid dodgerblue 4px;
+    background:#def;
+}
+
+.notice {
+    border-left: solid gray 4px;
+    background:whitesmoke;
+}
+
 
 /*#tblResult {width:100%} */
 
 #tblResult {}
 #tblResult th,td {
   padding:4px;
-  font-family: san-serif,"Tahoma";
+  /*font-family: san-serif,"Tahoma";*/
   font-size : small;
 }
 #tblResult .grdbtn{
    width:20px;
    background: #444;
    color:white;
+   text-align:center;
+   display:table-cell;
    border-radius: 4px;
    cursor: pointer;
 }
