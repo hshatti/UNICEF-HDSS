@@ -1,12 +1,6 @@
 <?php
                         $dbserver='p:localhost';
-                        
-//                        $dbname='hdss';
-//                        $dbpass='7hehd$$';
-//                        $dbuser='hdssview';
-//                        $dbusersuper='hdss';
-//                        $dbpasssuper='7h3Hd5$s';
-                        
+
                         
 //                        $dbname='juba';
 //                        $dbpass='jubaview';
