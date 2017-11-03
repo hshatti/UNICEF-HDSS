@@ -8,6 +8,7 @@
         <!--<link href="css/bootstrap/bootstrap.min.css" rel="stylesheet">-->
         <link href="css/dataset.css" rel="stylesheet" >
         <link href="css/style.css" rel="stylesheet" >
+        <!--<link href="css/fa/css/font-awesome.min.css" rel="stylesheet" >-->
         <style>
 
         </style>
@@ -32,11 +33,14 @@ if ($_SESSION['username']=='') {
         <div id="wait"><div class="loader"></div></div>
         <div id="mainpage">
         <header><div id="sidenavshow" onclick="openNav()">&#9776; </div>
-            <img class="hlogo" src="./img/UNICEF_logo_white.png"/>
-            <form action="conn.php" method="POST" class="logout-form">
-                <input type="hidden" name="logout" value="1"/>
-                Welcome <span class="user-label"><?php echo htmlentities($fullname);?></span> <input type="submit" class="logout-button" value="Logout" />
-            </form>
+            <img class="hlogo" src="./img/UNICEF_logo_white.png"/><div class="page-title">Communities</div>
+            <div class="logout-form">
+                <span class="fa fa-fw fa-2x fa-user-circle"></span> <span class="user-label"><?php echo htmlentities($fullname);?></span>
+                <div class="user-menu">
+                    <a ref="#" onclick="changePassword()">Change Password</a>
+                    <a ref="#" onclick="logout()">Logout</a>
+                </div>
+            </div>
         </header>
             <div w3-include-html="sidenav.php"></div>
         <div class="page-container"><?PHP
@@ -60,10 +64,11 @@ $q->close();
     </body>
     <script>
       $(document).ready(function(){
+        $('#tblResult').holdOn();
         sidenav=$('div[w3-include-html]');
         $.get(sidenav.attr('w3-include-html'),function(data,statu){
             sidenav.html(data);
-            $('#wait').fadeOut('fast');
+            $('#tblResult').holdOn('destroy');
         });
         initgraph();
       });

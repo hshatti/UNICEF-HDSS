@@ -101,7 +101,7 @@ class HithReport {
                     echo '<th class="tblPort grdbtn" onclick="doPort(this);">...';
                 else 
                     echo '<th>';
-                echo '</th><th class="tblNew grdbtn" onclick="doNewRecord(this);">New</th>';
+                echo '</th><th class="tblNew grdbtn fa fa-file-o" onclick="doNewRecord(this);"></th>';
               }
               echo '</tr></thead>';
     }
@@ -113,7 +113,7 @@ class HithReport {
                           echo '<thead><tr class="grpheader grp'.$i.'">';//TODO: better move grp# to Id instead of class 
                           $fldname=substr($this->Dataset->Fields[$i]->name,2);
                           $fldname=  BetweenBrakets($fldname)[0];
-                          echo '<td>'.$fldname.($fldname==''?'':' :').$this->Dataset->Values[$i].'</td>';
+                          echo '<td>'.$fldname.(trim($fldname)==''?'':' :').$this->Dataset->Values[$i].'</td>';
                           echo '</tr></thead>';
                           if ($i==count($this->groups)-1) 
                               $this->ColumnTitles ();// Column Titles
@@ -162,7 +162,7 @@ class HithReport {
                     if (array_key_exists($fldname, $this->lasts)) foreach($this->groups as $key=>$val) $this->lasts[$fldname][$key]=$this->Dataset->Values[$i] ;
                     $this->SubRowNum++;
                 }
-                if ($this->editable) $echo.= '<td class="tblEdit grdbtn" onclick="doEditRecord(this);">Edit</td><td class="tblDelete grdbtn" onclick="doDelRecord(this);">Del</td>' ;
+                if ($this->editable) $echo.= '<td class="tblEdit grdbtn fa fa-edit" onclick="doEditRecord(this);"></td><td class="tblDelete grdbtn fa fa-trash-o" onclick="doDelRecord(this);"></td>' ;
                 if (!$return) $echo.= '</tr>'."\n";
                 if ($return) return($echo);else echo $echo;
     }

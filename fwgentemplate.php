@@ -2,17 +2,19 @@
         include_once './conn.php';
         include_once './definitions.php';
         include_once './dataset.php';
-if ($_SESSION['username']=='') {
-    header('Location: index.php');
-    exit;
-}
+        if ($_SESSION['username']=='') {
+            header('Location: index.php');
+            exit;
+        }
   $sitetypes=$_POST['sitetypes'];
   //$SectorId= $_POST['sectorid'];
   $ProgramId= $_POST['programid'];
+  $options=$_POST['options'];
   $download=$_GET['download'];
   $triggerfile='../getexcel';
   $errorfile='../geterror';
-  $timeout=40;
+  $timeout=500;
+  set_time_limit($timeout);
   //foreach ($sitetypes as $i=>$sitetype)$sitetypes[$i]= QuotedStr($sitetype);
         //echo "<pre>please wait ....\n"  ;   
   //printf('%s %s <br>',$SectorId,$sitetypes);
@@ -26,11 +28,13 @@ if ($_SESSION['username']=='') {
       else 
       {
           $tmpfile= tempnam(sys_get_temp_dir(), '4ws'); 
-          $getexcel=sprintf("o=%s.xlsm\nc=%s\ny=%s\ns=%s\n%s\np=%s", 
+          $getexcel=sprintf("o=%s.xlsm\nc=%s\ny=%s\ns=%s\n%s\np=%s\ne=%s", 
                   $tmpfile,$_SESSION['CountryId'],$_SESSION['YOB'],/*join(',',$sectors)*/ $SectorId,
-                  isset($sitetypes)?'t='.$sitetypes.'':'',$ProgramId);
+                  (isset($sitetypes)?'t='.$sitetypes.'':''),$ProgramId,$options);
           file_put_contents($triggerfile, $getexcel);
           while (file_exists($triggerfile)&&($i<$timeout)) {
+              ob_flush();
+              flush();
               sleep(1);$i++;
           }
           if (file_exists($triggerfile)) unlink($triggerfile);
@@ -66,8 +70,7 @@ if ($_SESSION['username']=='') {
   }
   
 ?>
-
-<fieldset id="sitetypes" style="width:400px">
+<div class="margin-4" style="width:400px;display:flex-block"><fieldset id="sitetypes" class="line-b" style="height:200px">
     <legend>Include Site Types</legend>
     <?php 
       $q->SQL='select Description from fwsitetypes';
@@ -77,9 +80,19 @@ if ($_SESSION['username']=='') {
            $q->Next();
        }
     ?>
-</fieldset>
-<br>
-Sector : <select id="programs">
+</fieldset><fieldset id="options" class="line-b" style="height:200px"><legend>Filling options</legend>
+    <input type="checkbox" value="parData">Extract Data<br/>
+    <input type="checkbox" value="parAOO">Area of Origin<br/>
+    <input type="checkbox" value="parPCode">PCODE<br/>
+    <input type="checkbox" value="parSubDistrctCode">SubDistrict Code<br/>
+    <input type="checkbox" value="parDistrictCode">District Code<br/>
+    <input type="checkbox" value="parGovernorateCode">Governorate Code<br/>
+    <input type="checkbox" value="parSubDistrct">SubDistrict<br/>
+    <input type="checkbox" value="parDistrict">District<br/>
+    <input type="checkbox" value="parGovernorate">Governorate
+</fieldset><br>
+<fieldset class="margin-8 line-b">
+    <legend>Choose sector</legend><select id="programs">
     <?php 
       $q->SQL='select p.Description from fwprograms p join fwusersector u on u.SectorId=p.SectorId where p.YOB='.$_SESSION['YOB'].' and u.username='.QuotedStr($_SESSION['username']);
       $q->Open(); 
@@ -88,8 +101,9 @@ Sector : <select id="programs">
            $q->Next();
        }
     ?>
-</select><br><br>
-<button id="btnGen" onclick="doGenerateTemplate(event);" class="btnNormal">Generate Template</button>
+</select>
+<button id="btnGen" onclick="doGenerateTemplate(event);" class="margin-8 btnNormal">Generate Template</button></fieldset>
+</div>
 <script>
   function doGenerateTemplate(e){
       if ($('#sitetypes :checked').length==0){
@@ -101,11 +115,16 @@ Sector : <select id="programs">
             location.href=$(e.target).data('file');
             return;
       }
-      e.target.innerHTML='Generating, hold on...';
+      e.target.innerHTML='Generating, hold on <span class="fa fa-pull-right fa-spinner fa-pulse"></span>';
       e.target.disabled=true;
-      $.post('fwgentemplate.php',{sitetypes:getValues($('#sitetypes :checkbox:checked')).join(','),programid:$('select#programs').val()},function(data,status){
+      $.post('fwgentemplate.php',{sitetypes:getValues($('#sitetypes :checkbox:checked')).join(','),options:getValues($('#options :checkbox:checked')).join(','),programid:$('select#programs').val()},function(data,status){
         e.target.disabled=false;
-        res=JSON.parse(data);
+        try {res=JSON.parse(data);
+        } catch (exception) {
+            console.log('Error :',data);
+            e.target.innerHTML='Something went wrong,Retry?';
+        }
+
         console.log(res.log);
         if (res.log.includes('DONE')) {
            e.target.innerHTML='Download 4Ws'; 

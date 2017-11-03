@@ -356,7 +356,9 @@ elseif ($act=='g'){
     
     if (count($ids)==count($vals)){
         foreach($vals as $k=>$val) {
-            if(strcasecmp($controltype[$ids[$k]],'password')===0) $val= base64_encode(hex2bin(md5($val.strtolower($qry->Values['username'])))) ;
+            if(strcasecmp($controltype[$ids[$k]],'password')===0) {
+                $val= base64_encode(hex2bin(md5($val.strtolower($vals[array_search('username', $ids)]))));
+            } 
             $defval='';
             if (key_exists($ids[$k],(array)$tabledefaults[$tbl])) $defval=$tabledefaults[$tbl][$ids[$k]];
             if (isSqlQuery($defval)&&$val==''){

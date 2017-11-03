@@ -3,38 +3,7 @@ include_once './conn.php';
 //global $YOB;
 //global $sectors
 if (!isset($_SESSION['username']))    return;
-define('sqlBrowseActivities', 'SELECT
- al.Description as "#gActivity",
- p.Description Partner,se.Description,al.section,
- coalesce(Concat(g.Description, " ," ,d.Description, " ," ,a3.Description, " ," ,a4.Description, " ," ,s.Description),
- Concat(g.Description, " ," ,d.Description, " ," ,a3.Description, " ," ,a4.Description),
- Concat(g.Description, " ," ,d.Description, " ," ,a3.Description),
- Concat(g.Description, " ," ,d.Description),
- Concat(g.Description))as Location,
- sum(ab.QTY) as Reached,
- cast(max(ab.UpdatedAt) as Date) as "Last Period",
- count(distinct ab.updatedat) as "Number Of Reports"
-FROM fwactivitybeneficiaries ab
-LEFT JOIN fwActivityList al on al.YOB=ab.YOB and al.PcrId=ab.PcrId and al.`InterventionId`=ab.`InterventionId` and al.`OutputId`=ab.`OutputId` and al.`ActivityId`=ab.`ActivityId`
-left join fwSectors se on se.Description=al.section
-JOIN fwusergroupdtl ud ON ud.groupid=se.groupid
-LEFT JOIN fwpartners p ON p.Partner=ab.Partner
-LEFT JOIN fwgovernorates g on g.`Id`=ab.`GovernorateId`
-LEFT JOIN fwdistrict d on d.`GovernorateId`=ab.`GovernorateId` and d.`Id`=ab.`DistrictId`
-LEFT JOIN fwAdmin3 a3 on a3.`GovernorateId`=ab.`GovernorateId` and a3.`DistrictId`=ab.`DistrictId` and a3.`Id`=ab.`Admin3Id`
-LEFT JOIN fwAdmin4 a4 on a4.`GovernorateId`=ab.`GovernorateId` and a4.`DistrictId`=ab.`DistrictId` and a4.`Admin3Id`=ab.`Admin3Id` and a4.`Id`=ab.`Admin4Id`
-LEFT JOIN fwsites s on s.`Admin4Id`=ab.`Admin4Id` and s.`SiteId`=ab.SiteId
-WHERE ud.username=\'%s\' or %s=31
-GROUP BY 
- ab.YOB, 
- al.Description,
- p.Partner,
- ab.GovernorateId, 
- ab.DistrictId, 
- ab.Admin3Id, 
- ab.Admin4Id, 
- s.Description
-');
+
 
 define('sqlImport','insert into fwactivitybeneficiaries(YOB,CountryId,PartnerId,ProgramId,OutcomeId,OutputId,ActivityId,
  GovernorateId,DistrictId,Admin3Id,Admin4Id,Admin5Id,SiteId,Coverage,ActivityDate,UpdatedAt,ModalityId,AreaStatus,isNew,hasDisability,grp1,grp2,qty,DOE,UserId)
@@ -53,21 +22,69 @@ from
   left join fwUOMGrp u2 on u2.Description=i.grp2 or u2.Token=i.grp2
   left join fwActivityBeneficiaries ab on ab.YOB=al.YOB and ab.countryid=i.countryid and ab.partnerId=p.partnerId and ab.ProgramId=al.ProgramId and ab.OutcomeId=al.OutcomeId and ab.outputid=al.outputid and ab.activityid=al.activityid 
             and ab.GovernorateId=a4.GovernorateId and ab.DistrictId=a4.DistrictId and ab.Admin3Id=a4.Admin3Id and ab.Admin4Id=a4.Id and ab.Admin5Id=coalesce(a5.Id,0) and ab.SiteId=coalesce(s.SiteId,0) and ab.ActivityDate=i.ActivityDate and ab.UpdatedAt=i.ReportingDate and ab.isNew=i.isNew and ab.hasDisability=i.hasDisability and ab.grp1=u1.grp and ab.grp2=u2.grp
-where ab.UpdatedAt is null and al.SectorId=%d and i.sessionid=%s
+where ab.UpdatedAt is null and al.SectorId in (%s) and al.ProgramId=%d and i.sessionid=%s and not i.qty is null
 group by
   al.YOB,i.CountryId,p.PartnerId,al.ProgramId,al.OutcomeId,al.OutputId,al.ActivityId,
   a4.GovernorateId,a4.DistrictId,a4.Admin3Id,a4.Id,a5.id,s.Siteid,i.ActivityDate,i.ReportingDate,i.grp1,i.grp2,m.ModalityId,i.isNew,i.hasDisability');
-define('sqlDeleteSection','delete ab from fwActivityBeneficiaries ab join fwActivityList al on al.YOB=ab.YOB and al.ProgramId=ab.ProgramId and al.OutcomeId=ab.OutcomeId and al.OutputId=ab.OutputId and al.ActivityId=ab.ActivityId where ab.YOB=%d and ab.CountryId=%s and al.SectorId=%d');
 
-define ('sqlWASHAddressIntoSite','insert into fwSites(Admin4Id,SiteId,SiteType,Description,RefName)
-select b.id,@rw:=@rw+1,b.SiteType,left(b.Address,127),left(b.RefName,127) from (select distinct a4.id, \'Other\' as SiteType,i.Address, trim(Concat(i.Address,\', \',LEFT(i.Location,POSITION(\',\' in i.location)-1)) ) as RefName
-from 
-  fwImport i left join
-  fwActivityList al on al.Description=i.activity left join
-  fwAdmin4 a4 on a4.Location=i.location
-where al.Section=\'WASH\' and address<>\'\' and not exists (select * from fwSites s where s.RefName=trim(Concat(i.Address,\', \',LEFT(i.Location,POSITION(\',\' in i.location)-1))))) b');
+define('sqlDeleteSection','delete from fwActivityBeneficiaries where YOB=%d and CountryId=%s and ProgramId=%d and MonthName(UpdatedAt) in (%s)');
+define('sqlDeleteSectionItem','delete from fwActivityitems where YOB=%d and CountryId=%s and ProgramId=%d and MonthName(UpdatedAt) in (%s)');
+define('sqlImportItems','insert into fwActivityItems (
+  YOB,
+  CountryId,
+  PartnerId,
+  ProgramId,
+  OutcomeId,
+  OutputId,
+  ActivityId,
+  GovernorateId,
+  DistrictId,
+  Admin3Id,
+  Admin4Id,
+  Admin5Id,
+  SiteId,
+  Coverage,
+  ActivityDate,
+  UpdatedAt,
+  ModalityId,
+  isNew,
+  hasDisability,
+  ItemId,
+  Qty,
+  DOE,
+  UserId
+)  
+select 
+  al.YOB,i.CountryId,p.PartnerId,al.ProgramId,al.OutcomeId,al.OutputId,al.ActivityId,
+  a4.GovernorateId,a4.DistrictId,a4.Admin3Id,a4.Id Admin4Id,coalesce(a5.Id ,0) admin5Id,coalesce(s.SiteId,0) SiteId,
+  i.Coverage,i.ActivityDate,i.ReportingDate,m.ModalityId,i.isNew,i.hasDisability,t.ItemId,sum(i.ItemQty),now(),%s
+from
+ fwImport i 
+  left join fwAdmin4 a4 on a4.location=i.location
+  left join fwAdmin5 a5 on a5.Location=i.Neighborhood
+  left join fwSites s on s.Admin4Id=a4.Id and s.Refname=i.Site
+  left join fwActivityList al on al.YOB=i.YOB and al.Description=i.Activity
+  left join fwPartners p on p.CountryId=i.CountryId and p.Description=i.Partner
+  left join fwModality m on m.Description=i.Modality
+  left join fwitems t on t.YOB=i.YOB and t.Description=i.Item 
+  left join fwActivityItems ai on ai.YOB=al.YOB and ai.countryid=i.countryid and ai.partnerId=p.partnerId and ai.ProgramId=al.ProgramId and ai.OutcomeId=al.OutcomeId and ai.outputid=al.outputid and ai.activityid=al.activityid 
+            and ai.GovernorateId=a4.GovernorateId and ai.DistrictId=a4.DistrictId and ai.Admin3Id=a4.Admin3Id and ai.Admin4Id=a4.Id and ai.Admin5Id=coalesce(a5.Id,0) and ai.SiteId=coalesce(s.SiteId,0) and ai.ActivityDate=i.ActivityDate and ai.UpdatedAt=i.ReportingDate and ai.isNew=i.isNew and ai.hasDisability=i.hasDisability and ai.ItemId=t.ItemId
+where ai.UpdatedAt is null and al.SectorId in (%s) and al.ProgramId=%d and not i.ItemQty is null and i.sessionid=%s 
+group by
+  al.YOB,i.CountryId,p.PartnerId,al.ProgramId,al.OutcomeId,al.OutputId,al.ActivityId,
+  a4.GovernorateId,a4.DistrictId,a4.Admin3Id,a4.Id,a5.id,s.Siteid,i.ActivityDate,i.ReportingDate,i.grp1,i.grp2,m.ModalityId,i.isNew,i.hasDisability
+');
 
-define ('sqlWASHActivitiesApplySites','');
+//define ('sqlWASHAddressIntoSite','insert into fwSites(Admin4Id,SiteId,SiteType,Description,RefName)
+//select b.id,@rw:=@rw+1,b.SiteType,left(b.Address,127),left(b.RefName,127) from (select distinct a4.id, \'Other\' as SiteType,i.Address, trim(Concat(i.Address,\', \',LEFT(i.Location,POSITION(\',\' in i.location)-1)) ) as RefName
+//from 
+//  fwImport i left join
+//  fwActivityList al on al.Description=i.activity left join
+//  fwAdmin4 a4 on a4.Location=i.location
+//where al.Section=\'WASH\' and address<>\'\' and not exists (select * from fwSites s where s.RefName=trim(Concat(i.Address,\', \',LEFT(i.Location,POSITION(\',\' in i.location)-1))))) b');
+//
+//define ('sqlWASHActivitiesApplySites','');
+
 $tables=array('fwactivities','fwactivitybenefeciaries','fwactivitybenlist','fwactivityitems','fwactivitylist','fwadmin3','fwadmin4','fwdistrict','fwgovernerates',
       'fwindicatordtl','fwindicatormaster','fwirs','fwitems','fwpartners','fwpcrs','fwreportgroup','fwsectors','fwsghtrreport','fwsites','fwuomgrp','fwusergroupdtl','fwusers','fwvars','genrep');
 
@@ -522,7 +539,7 @@ $tabledefaults=[// values to set if the field is null
     ]
 ];
 
-$fwdefaultvalues =[// this is only for smart 4Ws import, for table defaults check $tabledefaults
+$fwdefaultvalues =[// this is only for smart 4Ws import table, for hdss table defaults check $tabledefaults
     'YOB'=>$_SESSION['YOB'],
     'Modality'=>QuotedStr('Regular Program'),
     'Agency'=>QuotedStr('UNICEF'),  //Temp

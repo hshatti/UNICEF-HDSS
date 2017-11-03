@@ -27,11 +27,14 @@ include_once './definitions.php';
     </head>
     <body><div id="wait"><div class="loader"></div></div><div id="mainpage">
         <header><div id="sidenavshow" onclick="openNav()">&#9776; </div>
-            <img class="hlogo" src="./img/UNICEF_logo_white.png"/>
-            <form action="conn.php" method="POST" class="logout-form">
-                <input type="hidden" name="logout" value="1"/>
-                Welcome <span class="user-label"><?php echo htmlentities($fullname);?></span> <input type="submit" class="logout-button" value="Logout" />
-            </form>
+            <img class="hlogo" src="./img/UNICEF_logo_white.png"/><div class="page-title">Items</div>
+             <div class="logout-form">
+                <span class="fa fa-fw fa-2x fa-user-circle"></span> <span class="user-label"><?php echo htmlentities($fullname);?></span>
+                <div class="user-menu">
+                    <a ref="#" onclick="changePassword()">Change Password</a>
+                    <a ref="#" onclick="logout()">Logout</a>
+                </div>
+            </div> 
         </header>
             <div w3-include-html="sidenav.php"></div>
         <div class="page-container"><?PHP
@@ -57,7 +60,7 @@ $q->close();
     <script>
       $(document).ready(function(){
         sidenav=$('div[w3-include-html]');
-        $.get(sidenav.attr('w3-include-html'),function(data,statu){
+        $.get(sidenav.attr('w3-include-html'),function(data,status){
             sidenav.html(data);
             $('#wait').fadeOut('fast');
         });

@@ -1,4 +1,5 @@
 <?php
+    $monthName=[0,'January','February','March','April','May','June','July','August','September','October','November','December'];
 
                         function alert($msg){echo '<script>alert("'.$msg.'");</script>';}
                         function writelog($data,$thefile='../log/log'){
@@ -6,16 +7,15 @@
                             if (!file_exists('../log')) mkdir('../log');
                             file_put_contents($thefile, $data,FILE_APPEND);
                         }
-                        
-                        $dbserver='p:localhost';
-                        $dbname='hdss';
-                        $dbpass='hdssview';
-                        $dbuser='hdssview';
-                        $dbusersuper='hdss';
-                        $dbpasssuper='hdss';
+                        include_once './db.php';
                         date_default_timezone_set('UTC');
-                        if (session_status()!=PHP_SESSION_ACTIVE) session_start();
-                        if ($_SESSION['authflag']<2){
+                  //      printf ('<p>before compare : %d</p> session: %s',session_status(),print_r($_SESSION,true));
+                        if (session_status()!==PHP_SESSION_ACTIVE){ 
+//                            printf ('<p>before start : %d</p>',session_status());
+                            session_start();
+//                            printf ('<p>after start : %d</p>',session_status());
+                        } 
+                        if ($_SESSION['authflag']<1){
                           $dblink=mysqli_connect($dbserver,$dbuser, $dbpass,$dbname);
                         }
                         else 
@@ -49,6 +49,13 @@
                             header('Location: index.php');
                             exit();
                         }
+                        elseif(isset($_POST['hash'])){
+//                           echo $_SESSION['username'];
+                           $q->Execute(sprintf('update fwUsers set password=%s where username=%s',QuotedStr(base64_encode(hex2bin($_POST['hash']))),QuotedStr($_SESSION['username'])));
+                           if ($q->Affected>0) printf ('Password for user [%s] was successfully changed',$_SESSION['username']);
+                           else printf ('Something went wrong!, no password changed for [%s]',$_SESSION['username']);
+                           exit();
+                        }
                         elseif (isset($un)&&isset($ps)){
                             //echo $un;echo '<br>';echo $ps; echo '<br>----<br>';
                             $un=  mysqli_escape_string($dblink,$un);
@@ -75,11 +82,13 @@
                                     while (!$q->EOF()) {$sectors[]=$q->Values['SectorId'];$q->next();}
                                     $_SESSION['sectors']=$sectors;
                                     $fullname=$_SESSION['fullname'];
-                                    if ($_SESSION['authflag']>1) { // change to a db supperuser if allowed
+                                    if ($_SESSION['authflag']>0) { // change to a db supperuser if allowed
                                         mysqli_close($dblink);
                                         $dblink=mysqli_connect($dbserver,$dbusersuper, $dbpasssuper,$dbname);
                                     }
-                                    session_commit();
+                                    //printf ('<p>before commit %d</p>', session_status());
+          //                          session_commit();
+                                    //printf ('<p>after commit %d</p>',session_status());
                                     if ($_SESSION['authflag']==1) header('Location: ./main.php');
                                     else header('Location: ./activities.php');
                                     exit();

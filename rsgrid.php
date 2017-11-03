@@ -25,6 +25,7 @@ function ParseParamForm($dblink,$strSQL,$noPrint=false,$repname='',$params=null)
     if (!$noPrint) for ($i=0;$i<$slRepCount;$i++){
         $line=$slRep[$i];
         $line=str_ireplace(":yob", $_SESSION['YOB'], $line);
+        $line=str_ireplace(":authflag", $_SESSION['authflag'], $line);
         $line=str_ireplace(":countryid", QuotedStr($_SESSION['CountryId']), $line);
         $line=str_ireplace(":sectors", join(',',$_SESSION['sectors']), $line);
         $line=str_ireplace(":username", QuotedStr($_SESSION['username']), $line);
@@ -34,7 +35,7 @@ function ParseParamForm($dblink,$strSQL,$noPrint=false,$repname='',$params=null)
                     delete($line,0,1);
                     $label=strstr($line,'@',TRUE);
                     if ($repname!='') $r=$repname ; else $r=rand();
-                    echo "<div>$label</div>";
+                    echo "<label  style=\"float:left;color:#0070c0;font:bold 1em 'Roboto',sans-serif\">$label</label>";
                     echo "<select class=\"ComboBox\" name=\"sel\" style=\"min-width : 150px\">";
                     $label=strstr($line,'@');
                     Delete($label, 0, 1);
@@ -60,13 +61,13 @@ function ParseParamForm($dblink,$strSQL,$noPrint=false,$repname='',$params=null)
                           Delete($label,0,  strpos($label, '|')+1);
                         }
                     }
-                    echo '</select><br/>';
+                    echo '</select>';
 
                     break;
                 case 'd':
                     delete($line,0,1);
                     $label=strstr($line,'@',TRUE);
-                    echo "<strong>$label </strong><div class=\"DateRange\" style=\"text-align: right\">";
+                    echo "<label style=\"float:left;color:#0070c0;font:bold 1em 'Roboto',sans-serif\">$label</label><div class=\"DateRange\" style=\"text-align: right\">";
                     $label=strstr($line,'@');
                     Delete($label, 0, 1);
                     if (strtoupper($label)=='YTD'){
@@ -89,7 +90,7 @@ function ParseParamForm($dblink,$strSQL,$noPrint=false,$repname='',$params=null)
                     delete($line,0,1);
                     $label=strstr($line,'@',TRUE);
                     echo '<fieldset class="CheckList" style="border: black 1px solid;text-align: left; max-height:350px; overflow:auto">';
-                    echo "<legend><strong>$label</strong></legend>";
+                    echo "<legend>$label</legend>";
                     echo "<input type=\"checkbox\" id=\"SelectAll\"/>[Select All]<br/><hr>";
                     $label=strstr($line,'@');
                     Delete($label, 0, 1);
@@ -115,7 +116,7 @@ function ParseParamForm($dblink,$strSQL,$noPrint=false,$repname='',$params=null)
                           Delete($label,0,  strpos($label, '|')+1);
                         }
                     }
-                    echo '</fieldset><br/>';
+                    echo '</fieldset>';
 
                     break;
                 case 'n':
@@ -163,18 +164,18 @@ if ($isdesign)
 {     // when adding new report                    
   $authflag=$_SESSION['authflag'];
   //echo $authflag.'<br>';
-  if ($authflag>2)// Country Supervisor or sysAdmin  
-    if (isset($repdel)) {
+  if ($authflag>2)// Country SuperUser or sysAdmin  
+    if (isset($repdel)) { // deleting report?
         $dsRep->Execute("delete from genrep where YOB='$YOB' and repname='$rep'");
         echo json_encode(array('msg'=>'['.$dsRep->Affected.'] Report deleted.'));
     }
-    elseif (isset($repnew)) try
+    elseif (isset($repnew)) try //inserting report?
     {
         $dsRep->Execute("update genrep set Def=null where Def='T'");
         $repnew=  addcslashes($repnew,"'");
-        $dsRep->Execute("insert into genrep(YOB,RepName,Def,SQLText) values ($YOB,'$repnew','T','  from ')");
-        $dsRep->Execute(sprintf("replace into fwreportsector values(%d,%d,%s,%s)",
-                0,$YOB,QuotedStr($_SESSION['CountryId']),QuotedStr($repnew))); 
+        $dsRep->Execute("insert into genrep(YOB,RepName,Def,SQLText,Owner) values ($YOB,'$repnew','T','  from ',"+QuotedStr($_SESSION['username'])+")");
+//        $dsRep->Execute(sprintf("replace into fwreportsector values(%d,%d,%s,%s)",
+//                0,$YOB,QuotedStr($_SESSION['CountryId']),QuotedStr($repnew))); 
         echo json_encode(array('msg'=>'['.$dsRep->Affected.'] Report added.'));
     } catch (Exception $e) {
         
@@ -188,8 +189,8 @@ if ($isdesign)
         $dsRep->Commit();
         ParseParamForm($dblink, $savesql);
     } 
-    else
-      echo json_encode (array( 'def'=>$dsRep->Values['Def'],'sql'=>$dsRep->Values['SQLText']));//getter, get report sql design
+    else //getter, get report sql design
+      echo json_encode (array( 'def'=>$dsRep->Values['Def'],'sql'=>$dsRep->Values['SQLText']));
     
 } else 
 {
@@ -226,6 +227,7 @@ if ($isdesign)
 //echo "<p>$sqltext</p>";
     $sqltext=str_ireplace(":yob", $YOB.' ', $sqltext);
     $sqltext=str_ireplace(":countryid", QuotedStr($_SESSION['CountryId']).' ', $sqltext);
+    $sqltext=str_ireplace(":authflag", QuotedStr($_SESSION['authflag']).' ', $sqltext);
     $sqltext=str_ireplace(":sectors", join(',',$_SESSION['sectors']), $sqltext);
     $sqltext=str_ireplace(":username", QuotedStr($_SESSION['username']).' ', $sqltext);
     $q->SQL= forkIndicators($sqltext);

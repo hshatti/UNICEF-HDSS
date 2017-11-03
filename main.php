@@ -21,6 +21,8 @@
         <script src="js/jquery/graph.js"></script>
         <script src="js/dataset.js"></script>
         <script src="/js/cm/codemirror.js"></script>
+        <script src="/js/clipboard.js"></script>
+        
 <?PHP 
 include_once './conn.php';
 include_once './dataset.php';
@@ -33,14 +35,19 @@ if ($_SESSION['username']=='') {
 ?>  
         
 </head>
-    <body><div id="wait"><div class="loader"></div></div><div id="mainpage">
+    <body>
+        <!--<div id="wait"></div>-->
         <header>
             <div id="sidenavshow" onclick="openNav()">&#9776; </div>
             <img class="hlogo" src="./img/UNICEF_logo_white.png"/>
-            <form action="conn.php" method="POST" class="logout-form">
-                <input type="hidden" name="logout" value="1"/>
-                Welcome <span class="user-label"><?php echo htmlentities($fullname);?></span> <input type="submit" class="logout-button" value="Logout" />
-            </form></header>
+            <div class="logout-form">
+                <span class="fa fa-fw fa-2x fa-user-circle"></span> <span class="user-label"><?php echo htmlentities($fullname);?></span>
+                <div class="user-menu">
+                    <a ref="#" onclick="changePassword()">Change Password</a>
+                    <a ref="#" onclick="logout()">Logout</a>
+                </div>
+            </div> 
+        </header>
             <div w3-include-html="sidenav.php"></div>
 
         <div class="page-container">
@@ -52,7 +59,7 @@ if ($_SESSION['username']=='') {
               if (!isset($dsReps)) 
                   $dsReps= new dataset($dblink,'SELECT DISTINCT r.RepName, r.SQLText,r.conf,r.Def FROM genrep r 
 JOIN fwreportsector rs ON rs.YOB=r.YOB and rs.reportname=r.RepName 
-JOIN fwusersector us ON (us.sectorId=rs.sectorid AND us.username=\''.$un.'\') or (rs.sectorid=0) or ('.$_SESSION['authflag'].'=31) where r.YOB in (0,'.$YOB.') and coalesce(rs.CountryId,\'\') in ('.QuotedStr($_SESSION['CountryId']).',\'\')');
+JOIN fwusersector us ON (us.sectorId=rs.sectorid AND us.username=\''.$un.'\') or (rs.sectorid=0) or ('.$_SESSION['authflag'].'=31) or (r.Owner='. QuotedStr($_SESSION['username']).') where r.YOB in (0,'.$YOB.') and coalesce(rs.CountryId,\'\') in ('.QuotedStr($_SESSION['CountryId']).',\'\')');
               $dsReps->Open();
               while (!$dsReps->EOF()){
                   if(isset($rep))
@@ -109,11 +116,12 @@ JOIN fwusersector us ON (us.sectorId=rs.sectorid AND us.username=\''.$un.'\') or
         </div>
         <script>
         $('document').ready( function(){ //some housekeeping has to be done below
-            
+            $('body').holdOn();
             sidenav=$('div[w3-include-html]');
             $.get(sidenav.attr('w3-include-html'),function(data,statu){
                 sidenav.html(data);
-                $('#wait').fadeOut('fast');
+//                try {$('body').holdOn('destroy');}
+//                catch(e){}
             });
             var editor = CodeMirror.fromTextArea('sqlcode', {
                 //height: "450px",
@@ -126,7 +134,8 @@ JOIN fwusersector us ON (us.sectorId=rs.sectorid AND us.username=\''.$un.'\') or
             $('#uppertabs').tabs();
             $('button').button();
             $('.left-menu').accordion({
-              activate: function(event, ui){          
+              activate: function(event, ui){
+                $('#design').holdOn();
                 if (ui) $.post('rsgrid.php', {rep:ui.newHeader.text(),des:1} ,function(data,status){ 
                     if(data) {
                         var params=JSON.parse(data);
@@ -144,21 +153,22 @@ JOIN fwusersector us ON (us.sectorId=rs.sectorid AND us.username=\''.$un.'\') or
                           $('[href="#design"]').hide();
                           $('[href="#import"]').hide();
                       }
+                      $('#design').holdOn('destroy');
                 });
               }, create : function(event,ui){
+                $('#design').holdOn();console.log('requesting .. ',ui.header.text());
                 if (ui) $.post('rsgrid.php', {rep:ui.header.text(),des:1},function(data,status){
-                          if (data) {
+                    if (data) {
                           var params=JSON.parse(data); 
-                              //console.log(data);
                           //if (params.sql){
                           $('div#design textarea').text(params.sql);
-                          //console.log(editor.options);
                           //editor.options.content=params.sql;
                           if (ui.header.hasClass('def')){
                               setTimeout(function(){editor.setCode(params.sql);},500);
-                              ui.header.next().find('button#run').trigger('click');
+//                              ui.header.next().find('button#run').trigger('click');
                           }
-                          else ui.header.prevObject.filter('.def').trigger('click').next().find('button#run').trigger('click');
+                          else {
+                          }
                           //
                           $('div#design button#btnSQLSave').val(ui.header.text());
                           $('div#design button#btnRepNew').val(ui.header.text());
@@ -170,11 +180,18 @@ JOIN fwusersector us ON (us.sectorId=rs.sectorid AND us.username=\''.$un.'\') or
                           $('[href="#import"]').hide();
                          // console.log("not admin");
                       }
+                      activeRep=ui.header.prevObject.filter('.def');
+                      if (activeRep.length>0) activeRep.trigger('click').next().find('button#run').trigger('click');
+                      else ui.header.next().find('button#run').trigger('click');
+                      $('#design').holdOn('destroy');
                 });
               }
             });
+            $('.rep').css('height','');
             $('.left-menu').resizable({handles:'e'});
             $('button#run').button().click(function(){
+                if ($('#dbgrid').holdOn('instance')===undefined) 
+                    $('#dbgrid').empty().css('height','200px').holdOn();
                 var x=$(this).parent().parent().children('.ComboBox,.CheckList,.DateRange');
                 var a=[];
                 for (var i=0;i<x.length;i++){
@@ -208,7 +225,12 @@ JOIN fwusersector us ON (us.sectorId=rs.sectorid AND us.username=\''.$un.'\') or
                     if (String(data).substr(0,4).toLowerCase()==='<!do') //usually the case of error this tag appeaers
                       document.write(data);
                     else {
-                        $('div#dbgrid').html(data);initgraph();
+                        $('div#dbgrid').prepend(data);
+                        initgraph();
+                        if ($('div#dbgrid').holdOn('instance')!==undefined)
+                            $('div#dbgrid').holdOn('destroy').css('height','');
+                        if ($('body').holdOn('instance')!==undefined)
+                            $('body').holdOn('destroy');
                         
                         selectableTable($('.dbgrid'));
                     }
@@ -272,15 +294,19 @@ JOIN fwusersector us ON (us.sectorId=rs.sectorid AND us.username=\''.$un.'\') or
         $(document).ajaxSend(function(event, jqXHR,ajaxOptions){
             w=$('div.loader'); 
             //w.text('Processing...');
-            $('div#wait').show();              
+//            $('#wait').holdOn();              
         });
         $(document).ajaxSuccess(function(event, jqXHR,ajaxOptions){
-              $('div#wait').hide();
-              $('.rep').css('height','auto');
+//            try
+//            {
+//                $('#wait').holdOn('destroy');$('#wait').hide();
+//            }
+//              catch(e){};
+//              $('.rep').css('height','auto');
         });
         
     </script>
     
-        </div><br/><br/><br/><br/><br/><br/></body>
+        <br/><br/><br/><br/><br/><br/></body>
 </html>
  
